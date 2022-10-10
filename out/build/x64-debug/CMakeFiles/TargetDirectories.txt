@@ -1,5 +1,0 @@
-C:/Users/vhlk/source/repos/PGforDerma/out/build/x64-debug/CMakeFiles/edit_cache.dir
-C:/Users/vhlk/source/repos/PGforDerma/out/build/x64-debug/CMakeFiles/rebuild_cache.dir
-C:/Users/vhlk/source/repos/PGforDerma/out/build/x64-debug/PGforDerma/CMakeFiles/PGforDerma.dir
-C:/Users/vhlk/source/repos/PGforDerma/out/build/x64-debug/PGforDerma/CMakeFiles/edit_cache.dir
-C:/Users/vhlk/source/repos/PGforDerma/out/build/x64-debug/PGforDerma/CMakeFiles/rebuild_cache.dir
