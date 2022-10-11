@@ -19,18 +19,24 @@ bool RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob,
 {
 	std::uniform_real_distribution<> distr(0, 1);
 
-	bool has_inserted = false;
+	bool has_inserted_left = false;
+	bool has_inserted_right = false;
 
 	if (distr(gen) <= left_prob) {
 		insert_random_left(node, left_prob, right_prob, seen_features_in_branch);
-		has_inserted = true;
+		has_inserted_left = true;
 	}
 	if (distr(gen) <= right_prob) {
 		insert_random_right(node, left_prob, right_prob, seen_features_in_branch);
-		has_inserted = true;
+		has_inserted_right = true;
 	}
 
-	return has_inserted;
+	if (!has_inserted_left && has_inserted_right)
+		node->left = std::make_unique<RandomNode>(seen_features_in_branch, true);
+	if (!has_inserted_right && has_inserted_left)
+		node->right = std::make_unique<RandomNode>(seen_features_in_branch, true);
+
+	return has_inserted_left || has_inserted_right;
 }
 
 void RandomTree::insert_random_left(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch) {

@@ -63,7 +63,6 @@ void RandomNode::if_not_set_target() {
 
 void RandomNode::get_random_target() {
 	PossibleValues possible_values;
-	std::mt19937 gen(seed);
 
 	auto& targets = possible_values.targets;
 	std::uniform_int_distribution<> distr(0, (int) targets.size() - 1);
