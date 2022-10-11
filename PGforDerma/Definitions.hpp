@@ -40,7 +40,7 @@ struct Conversions {
 			case (6): return "Polygonal Papules";
 			case (7): return "Follicular Papules";
 			case (8): return "Oral Mucosal Involvement";
-			case (9): return "Kneeand Elbow Involvement";
+			case (9): return "Knee and Elbow Involvement";
 			case (10): return "Scalp Involvement";
 			case (11): return "Family History";
 			case (12): return "Melanin Incontinence";
@@ -58,13 +58,13 @@ struct Conversions {
 			case (24): return "Munro Microabcess";
 			case (25): return "Focal Hypergranulosis";
 			case (26): return "Disappearance of the Granular Layer";
-			case (27): return "Vacuolisationand Damage of Basal Layer";
+			case (27): return "Vacuolisation and Damage of Basal Layer";
 			case (28): return "Spongiosis";
-			case (29): return "Saw - tooth Appearance of Retes";
+			case (29): return "Saw-tooth Appearance of Retes";
 			case (30): return "Follicular Horn Plug";
 			case (31): return "Perifollicular Parakeratosis";
 			case (32): return "Inflammatory Monoluclear Inflitrate";
-			case (33): return "Band - like Infiltrate";
+			case (33): return "Band-like Infiltrate";
 			case (34): return "Age";
 			default:
 				throw std::invalid_argument("index out of range");
