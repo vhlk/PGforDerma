@@ -1,9 +1,8 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <random>
 #include "Definitions.hpp"
-
-constexpr int seed = 2703;
 
 class RandomNode {
 public:
@@ -25,6 +24,9 @@ public:
 	constexpr int get_target() const { return target; }
 	constexpr void set_target(const int target) { this->target = target; }
 private:
+	const int seed = 2703;
+	std::mt19937 gen = std::mt19937(seed);
+
 	void get_random_target();	
 
 	int comparator; // [">", "<", ">=", "<=", "!=", "=="]

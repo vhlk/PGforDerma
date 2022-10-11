@@ -1,5 +1,4 @@
 #include "RandomNode.hpp"
-#include <random>
 
 RandomNode::RandomNode(const std::vector<int>& seen_features_in_branch, bool is_leaf_node) {
 	if (is_leaf_node) {
@@ -11,8 +10,6 @@ RandomNode::RandomNode(const std::vector<int>& seen_features_in_branch, bool is_
 	Conversions conversions;
 
 	this->seen_features_in_branch = seen_features_in_branch;
-
-	std::mt19937 gen(seed);
 
 	// get all possible features remaining
 	auto features = possible_values.features;

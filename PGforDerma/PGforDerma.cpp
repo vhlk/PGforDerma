@@ -7,12 +7,13 @@
 #include "RandomNode.hpp"
 #include "RandomTree.hpp"
 #include <array>
+#include <random>
 
 int main()
 {
-	auto tree = std::make_unique<RandomTree>(0.1, 1);
+	auto tree = std::make_unique<RandomTree>(0.4, 0.4);
 
-	std::cout << "printing tree..." << std::endl;
+	std::cout << "printing tree...\n" << std::endl;
 	
 	tree->print();
 }
