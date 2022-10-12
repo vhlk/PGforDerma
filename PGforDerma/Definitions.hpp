@@ -16,6 +16,42 @@ struct PossibleValues {
 	const std::vector<int> targets = make_vector_from_i_to_n(1, 6);
 };
 
+class NodeSeed {
+public:
+	static NodeSeed& getInstance()
+	{
+		static NodeSeed instance; // Guaranteed to be destroyed.
+		// Instantiated on first use.
+		return instance;
+	}
+
+	NodeSeed(NodeSeed const&) = delete;
+	void operator=(NodeSeed const&) = delete;
+
+	int get_seed() { return seed++;  }
+private:
+	NodeSeed() {}
+	int seed = 2703;
+};
+
+class TreeSeed {
+public:
+	static TreeSeed& getInstance()
+	{
+		static TreeSeed instance; // Guaranteed to be destroyed.
+		// Instantiated on first use.
+		return instance;
+	}
+
+	TreeSeed(TreeSeed const&) = delete;
+	void operator=(TreeSeed const&) = delete;
+
+	int get_seed() { return seed++; }
+private:
+	TreeSeed() {}
+	int seed = 0327;
+};
+
 struct Conversions {
 	constexpr std::string get_string_comparator(int comparator) {
 		switch (comparator) {

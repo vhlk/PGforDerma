@@ -75,6 +75,7 @@ std::tuple<std::unique_ptr<RandomNode>, std::optional<std::vector<int>>> RandomT
 
 	std::vector<int> new_features_branch(seen_features_in_branch);
 	new_features_branch.push_back(new_node->get_feature());
+	new_features_branch.shrink_to_fit();
 
 	return  { std::move(new_node), new_features_branch };
 }

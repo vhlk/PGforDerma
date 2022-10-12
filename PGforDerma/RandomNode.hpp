@@ -24,7 +24,8 @@ public:
 	constexpr int get_target() const { return target; }
 	constexpr void set_target(const int target) { this->target = target; }
 private:
-	const int seed = 2703;
+	NodeSeed* node_seed_singleton;
+	const int seed = node_seed_singleton->getInstance().get_seed();
 	std::mt19937 gen = std::mt19937(seed);
 
 	void get_random_target();	

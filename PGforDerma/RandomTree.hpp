@@ -11,6 +11,7 @@ public:
 
 	void print();
 
+	constexpr int get_seed() const { return seed;  }
 private:
 	std::unique_ptr<RandomNode> root;
 
@@ -21,6 +22,7 @@ private:
 	std::tuple<std::unique_ptr<RandomNode>, std::optional<std::vector<int>>> create_new_node(const std::vector<int>& seen_features_in_branch);
 	void print_tree(const RandomNode* node, int level);
 
-	const int seed = 0327;
+	TreeSeed* tree_seed_singleton;
+	const int seed = tree_seed_singleton->getInstance().get_seed();
 	std::mt19937 gen = std::mt19937(seed);
 };
