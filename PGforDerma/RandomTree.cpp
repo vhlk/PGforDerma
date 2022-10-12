@@ -108,7 +108,7 @@ void RandomTree::print_tree(const RandomNode* node, int level) {
 		std::string spacing(8 * level, ' ');
 
 		if (node->has_target()) {
-			std::cout << spacing << "-> " << conversion.get_feature_name(node->get_target()) << std::endl;
+			std::cout << spacing << "-> " << conversion.get_target_name(node->get_target()) << std::endl;
 		} else {
 			std::string comparison = "(" + std::to_string(node->get_feature()) + " " + 
 				conversion.get_string_comparator(node->get_comparator()) + " " + std::to_string(node->get_comparating_value()) + ")";

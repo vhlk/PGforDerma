@@ -13,7 +13,7 @@ struct PossibleValues {
 	const std::vector<int> values = make_vector_from_i_to_n(0, 3);
 	const std::vector<int> values_hist_familiar = make_vector_from_i_to_n(0, 1);
 	const std::vector<int> values_age = make_vector_from_i_to_n(15, 60, 15);
-	const std::vector<int> targets = make_vector_from_i_to_n(1, 7);
+	const std::vector<int> targets = make_vector_from_i_to_n(1, 6);
 };
 
 struct Conversions {
@@ -66,6 +66,19 @@ struct Conversions {
 			case (32): return "Inflammatory Monoluclear Inflitrate";
 			case (33): return "Band-like Infiltrate";
 			case (34): return "Age";
+			default:
+				throw std::invalid_argument("index out of range");
+		}
+	}
+
+	constexpr std::string get_target_name(int feature) {
+		switch (feature) {
+			case (1): return "psoriasis";
+			case (2): return "seboreic dermatitis";
+			case (3): return "lichen planus";
+			case (4): return "pityriasis rosea";
+			case (5): return "cronic dermatitis";
+			case (6): return "pityriasis rubra pilaris";
 			default:
 				throw std::invalid_argument("index out of range");
 		}
