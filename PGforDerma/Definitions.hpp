@@ -31,7 +31,7 @@ public:
 	int get_seed() { return seed++;  }
 private:
 	NodeSeed() {}
-	int seed = 2703;
+	int seed = 27'03;
 };
 
 class TreeSeed {

@@ -15,6 +15,11 @@ void RandomTree::print() {
 	print_tree(root.get(), 0);
 }
 
+int RandomTree::get_number_nodes()
+{
+	return get_number_nodes(root.get());
+}
+
 bool RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch)
 {
 	std::uniform_real_distribution<> distr(0, 1);
@@ -119,4 +124,19 @@ void RandomTree::print_tree(const RandomNode* node, int level) {
 
 		print_tree(node->right.get(), level + 1);
 	}
+}
+
+int RandomTree::get_number_nodes(const RandomNode* curr_node) {
+	if (curr_node->has_target())
+		return 1;
+
+	int res = 1;
+	if (curr_node->left)
+		res += get_number_nodes(curr_node->left.get());
+	
+	if (curr_node->right)
+		res += get_number_nodes(curr_node->right.get());
+
+
+	return res;
 }

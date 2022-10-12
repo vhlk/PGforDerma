@@ -21,12 +21,16 @@ int main()
 	std::cout << ibm_df.col_idx_to_name(0) << ',' << ibm_df.col_idx_to_name(1) << ',' << ibm_df.col_idx_to_name(2) << std::endl;
 
 	
-	auto tree = std::make_unique<RandomTree>(0.7, 0.7);
+	auto tree = std::make_unique<RandomTree>(0.65, 0.65);
 	std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
-	tree->print();
+	//tree->print();
+	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
 
 
-	tree = std::make_unique<RandomTree>(0.7, 0.7);
+	tree = std::make_unique<RandomTree>(0.65, 0.65);
 	std::cout << std::endl << "printing second tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
-	tree->print();
+	//tree->print();
+	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
+
+	std::cin.get();
 }

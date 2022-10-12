@@ -12,6 +12,8 @@ public:
 	void print();
 
 	constexpr int get_seed() const { return seed;  }
+
+	int get_number_nodes();
 private:
 	std::unique_ptr<RandomNode> root;
 
@@ -25,4 +27,6 @@ private:
 	TreeSeed* tree_seed_singleton;
 	const int seed = tree_seed_singleton->getInstance().get_seed();
 	std::mt19937 gen = std::mt19937(seed);
+
+	int get_number_nodes(const RandomNode* curr_node);
 };
