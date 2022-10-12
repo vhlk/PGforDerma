@@ -13,10 +13,9 @@ ExternalProject_Add(DataFrame
 )
 
 ExternalProject_Get_Property(DataFrame install_dir)
-message("Install dir ${install_dir}")
 
 
-include_directories(${install_dir}/include)
+include_directories(SYSTEM ${install_dir}/include)
 
 # Adicione a origem ao executável deste projeto.
 add_executable (PGforDerma "PGforDerma.cpp" "PGforDerma.hpp" "RandomTree.hpp" "RandomNode.hpp" "RandomNode.cpp" "RandomTree.cpp")
