@@ -22,37 +22,17 @@ RandomNode::RandomNode(const std::vector<int>& seen_features_in_branch, bool is_
 	}
 
 	// get the feature for this node
-	std::uniform_int_distribution<> distr(0, (int) features.size() - 1);
-	feature = features.at(distr(gen));
+	feature = get_random_elem(features);
 
 	// get comparator
-	if (conversions.get_feature_name(feature) == "Age") {
-		auto& comparator_ages = possible_values.comparators_age;
-		std::uniform_int_distribution<> distr(0, (int) comparator_ages.size() - 1);
-		comparator = comparator_ages.at(distr(gen));
-	}
-	else {
-		auto& comparators = possible_values.comparators;
-		std::uniform_int_distribution<> distr(0, (int) comparators.size() - 1);
-		comparator = comparators.at(distr(gen));
-	}
+	auto& comparators = conversions.get_feature_name(feature) == "Age" ? possible_values.comparators_age : possible_values.comparators;
+	comparator = get_random_elem(comparators);
 
 	// get comparating (to) value
-	if (conversions.get_feature_name(feature) == "Age") {
-		auto& comparating_values = possible_values.values_age;
-		std::uniform_int_distribution<> distr(0, (int) comparating_values.size() - 1);
-		comparating_value = comparating_values.at(distr(gen));
-	}
-	else if (conversions.get_feature_name(feature) == "Family History") {
-		auto& comparating_values = possible_values.values_hist_familiar;
-		std::uniform_int_distribution<> distr(0, (int) comparating_values.size() - 1);
-		comparating_value = comparating_values.at(distr(gen));
-	}
-	else {
-		auto& comparating_values = possible_values.values;
-		std::uniform_int_distribution<> distr(0, (int) comparating_values.size() - 1);
-		comparating_value = comparating_values.at(distr(gen));
-	}
+	auto& comparating_values = conversions.get_feature_name(feature) == "Age" ? possible_values.values_age :
+		conversions.get_feature_name(feature) == "Family History" ? possible_values.values_hist_familiar : possible_values.values;
+
+	comparating_value = get_random_elem(comparating_values);
 }
 
 void RandomNode::if_not_set_target() {
@@ -65,6 +45,11 @@ void RandomNode::get_random_target() {
 	PossibleValues possible_values;
 
 	auto& targets = possible_values.targets;
-	std::uniform_int_distribution<> distr(0, (int) targets.size() - 1);
-	target = targets.at(distr(gen));
+	target = get_random_elem(targets);
+}
+
+template <typename T> 
+T RandomNode::get_random_elem(const std::vector<T>& in) {
+	std::uniform_int_distribution<> distr(0, (int)in.size() - 1);
+	return in.at(distr(gen));
 }

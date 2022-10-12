@@ -33,4 +33,6 @@ private:
 	int feature; // from 'erythema' to 'Age'
 	int comparating_value; // [0 .. 3], except for family history (0 or 1)
 	int target = -1; // dissease ( [ 1 .. 7 ] )
+
+	template <typename T> T get_random_elem(const std::vector<T>& in);
 };

@@ -20,8 +20,7 @@ int main()
 	ibm_df.read((std::string(ROOT_DIR) + "/dataset/Dermatology_new.csv").c_str(), io_format::csv2);
 	std::cout << ibm_df.col_idx_to_name(0) << ',' << ibm_df.col_idx_to_name(1) << ',' << ibm_df.col_idx_to_name(2) << std::endl;
 
-	Conversions conversions;
-
+	
 	auto tree = std::make_unique<RandomTree>(0.4, 0.4);
 
 	std::cout << "printing tree...\n" << std::endl;
