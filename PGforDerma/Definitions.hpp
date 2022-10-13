@@ -121,6 +121,32 @@ struct Conversions {
 	}
 };
 
+struct Comparations {
+	constexpr bool compare(int feature_value, int comparator, int comparing_value) {
+		Conversions conversions;
+
+		return compare(feature_value, conversions.get_string_comparator(comparator), comparing_value);
+	}
+
+	constexpr bool compare(int feature_value, std::string comparator, int comparing_value) {
+		if (comparator == ">") {
+			return feature_value > comparing_value;
+		} else if (comparator == "<") {
+			return feature_value < comparing_value;
+		} else if (comparator == ">=") {
+			return feature_value >= comparing_value;
+		} else if (comparator == "<=") {
+			return feature_value <= comparing_value;
+		} else if (comparator == "!=") {
+			return feature_value != comparing_value;
+		} else if (comparator == "==") {
+			return feature_value == comparing_value;
+		} else {
+			throw std::invalid_argument("Comparator '" + comparator + "' not found");
+		}
+	}
+};
+
 constexpr std::vector<int> make_vector_from_i_to_n(int i, int n) {
 	std::vector<int> res;
 	for (int j = i; j <= n; j++) {

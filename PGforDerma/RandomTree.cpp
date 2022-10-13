@@ -15,6 +15,16 @@ void RandomTree::print() {
 	print_tree(root.get(), 0);
 }
 
+std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const {
+	if (node->has_target())
+		return conversions->get_target_name(node->get_target());
+
+	if (comparations->compare(X[node->get_feature()], conversions->get_string_comparator(node->get_comparator()), node->get_comparating_value()))
+		return predict(node->left, X);
+	
+	return predict(node->right, X);
+}
+
 bool RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch)
 {
 	std::uniform_real_distribution<> distr(0, 1);
@@ -101,18 +111,16 @@ std::tuple<std::unique_ptr<RandomNode>, std::optional<std::vector<int>>> RandomT
 //}
 
 void RandomTree::print_tree(const RandomNode* node, int level) {
-	Conversions conversion;
-
 	if (node != nullptr) {
 		print_tree(node->left.get(), level + 1);
 
 		std::string spacing(8 * level, ' ');
 
 		if (node->has_target()) {
-			std::cout << spacing << "-> " << conversion.get_target_name(node->get_target()) << std::endl;
+			std::cout << spacing << "-> " << conversions->get_target_name(node->get_target()) << std::endl;
 		} else {
 			std::string comparison = "(" + std::to_string(node->get_feature()) + " " + 
-				conversion.get_string_comparator(node->get_comparator()) + " " + std::to_string(node->get_comparating_value()) + ")";
+				conversions->get_string_comparator(node->get_comparator()) + " " + std::to_string(node->get_comparating_value()) + ")";
 
 			std::cout << spacing << "-> " << comparison << std::endl;
 		}

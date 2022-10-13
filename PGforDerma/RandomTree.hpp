@@ -10,12 +10,17 @@ public:
 	RandomTree(double left_prob, double right_prob);
 
 	void print();
+	std::string predict(const std::vector<int>& X) { return predict(root, X); };
 
 	constexpr int get_seed() const { return seed;  }
 
 	int get_number_nodes() const { return get_number_nodes(root.get()); }
+
+	~RandomTree() { delete conversions; delete comparations; }
 private:
 	std::unique_ptr<RandomNode> root;
+
+	std::string predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const;
 
 	bool try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch);
 	void insert_random_left(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch);
@@ -29,4 +34,7 @@ private:
 	std::mt19937 gen = std::mt19937(seed);
 
 	int get_number_nodes(const RandomNode* curr_node) const;
+
+	Conversions* conversions = new Conversions();
+	Comparations* comparations = new Comparations();
 };
