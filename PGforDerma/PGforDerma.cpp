@@ -25,18 +25,26 @@ int main()
 	std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
 	//tree->print();
 	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
-	std::cout << "predicting...";
 
 	auto [num_rows, num_cols] = ibm_df.shape();
+	
+	std::vector<std::vector<int>> X;
+	std::vector<int> y;
 
 	for (int i = 0; i < num_rows; i++) {
 		auto row = ibm_df.get_row<int>(i);
 
-		auto X = row.get_vector<int>();
-		X.erase(X.begin());
+		auto Xi = row.get_vector<int>();
 
-		std::cout << "Prediction: " << tree->predict(X) << std::endl;
+		y.push_back(Xi.back());
+
+		Xi.erase(Xi.begin()); // remove index
+		Xi.pop_back(); // remove y
+
+		X.push_back(Xi);
 	}
+
+	std::cout << "Accuracy: " << tree->get_accuracy(X, y);
 
 	tree = std::make_unique<RandomTree>(0.65, 0.65);
 	std::cout << std::endl << "printing second tree...(seed: " << tree->get_seed() << ")\n" << std::endl;

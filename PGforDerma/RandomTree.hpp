@@ -11,6 +11,7 @@ public:
 
 	void print();
 	std::string predict(const std::vector<int>& X) { return predict(root, X); };
+	double get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
 	constexpr int get_seed() const { return seed;  }
 

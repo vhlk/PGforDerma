@@ -15,6 +15,17 @@ void RandomTree::print() {
 	print_tree(root.get(), 0);
 }
 
+double RandomTree::get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y) {
+	double correct_preds = 0;
+
+	for (int i = 0; i < X.size(); i++) {
+		if (predict(X[i]) == conversions->get_target_name(y[i]))
+			correct_preds++;
+	}
+
+	return correct_preds / X.size();
+}
+
 std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const {
 	if (node->has_target())
 		return conversions->get_target_name(node->get_target());
