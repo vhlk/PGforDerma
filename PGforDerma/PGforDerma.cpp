@@ -44,7 +44,11 @@ int main()
 		X.push_back(Xi);
 	}
 
-	std::cout << "Accuracy: " << tree->get_accuracy(X, y);
+	std::cout << "Accuracy: " << tree->get_accuracy(X, y) << std::endl;
+
+	tree->mutate_target();
+	std::cout << "Accuracy after mutation: " << tree->get_accuracy(X, y) << std::endl;
+
 
 	tree = std::make_unique<RandomTree>(0.65, 0.65);
 	std::cout << std::endl << "printing second tree...(seed: " << tree->get_seed() << ")\n" << std::endl;

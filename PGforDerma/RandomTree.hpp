@@ -13,6 +13,8 @@ public:
 	std::string predict(const std::vector<int>& X) { return predict(root, X); };
 	double get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
+	void mutate_target() { mutate_target(root); };
+
 	constexpr int get_seed() const { return seed;  }
 
 	int get_number_nodes() const { return get_number_nodes(root.get()); }
@@ -20,6 +22,8 @@ public:
 	~RandomTree() { delete conversions; delete comparations; }
 private:
 	std::unique_ptr<RandomNode> root;
+
+	void mutate_target(std::unique_ptr<RandomNode>& node);
 
 	std::string predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const;
 

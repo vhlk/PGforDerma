@@ -26,6 +26,20 @@ double RandomTree::get_accuracy(const std::vector<std::vector<int>>& X, const st
 	return correct_preds / X.size();
 }
 
+void RandomTree::mutate_target(std::unique_ptr<RandomNode>& node) {
+	if (node->has_target()) {
+		node->mutate_target();
+		return;
+	}
+
+	std::uniform_int_distribution<> distr(1, 10);
+
+	if (distr(gen) <= 5)
+		return mutate_target(node->left);
+	else
+		return mutate_target(node->right);
+}
+
 std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const {
 	if (node->has_target())
 		return conversions->get_target_name(node->get_target());

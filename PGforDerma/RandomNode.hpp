@@ -23,6 +23,7 @@ public:
 	constexpr bool has_target() const { return target != -1; }
 	constexpr int get_target() const { return target; }
 	constexpr void set_target(const int target) { this->target = target; }
+	void mutate_target() { get_random_target(); };
 private:
 	NodeSeed* node_seed_singleton;
 	const int seed = node_seed_singleton->getInstance().get_seed();
