@@ -41,6 +41,27 @@ void RandomNode::if_not_set_target() {
 	}
 }
 
+std::unique_ptr<RandomNode> RandomNode::copy() const {
+	auto new_node = shallow_copy();
+
+	if (left)
+		new_node->left = left->copy();
+	if (right)
+		new_node->right = right->copy();
+
+	return new_node;
+}
+
+std::unique_ptr<RandomNode> RandomNode::shallow_copy() const {
+	auto new_node = std::make_unique<RandomNode>(seen_features_in_branch, has_target());
+	new_node->set_comparator(comparator);
+	new_node->set_feature(feature);
+	new_node->set_comparating_value(comparating_value);
+	new_node->set_target(target);
+
+	return new_node;
+}
+
 void RandomNode::get_random_target() {
 	PossibleValues possible_values;
 

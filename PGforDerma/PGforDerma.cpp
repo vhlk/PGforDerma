@@ -11,8 +11,46 @@
 #include <DataFrame/DataFrame.h>
 
 
+void print_node(const RandomNode* node, int level) {
+	Conversions conversions;
+
+	if (node != nullptr) {
+		print_node(node->left.get(), level + 1);
+
+		std::string spacing(8 * level, ' ');
+
+		if (node->has_target()) {
+			std::cout << spacing << "-> " << conversions.get_target_name(node->get_target()) << std::endl;
+		}
+		else {
+			std::string comparison = "(" + std::to_string(node->get_feature()) + " " +
+				conversions.get_string_comparator(node->get_comparator()) + " " + std::to_string(node->get_comparating_value()) + ")";
+
+			std::cout << spacing << "-> " << comparison << std::endl;
+		}
+
+		print_node(node->right.get(), level + 1);
+	}
+}
+
 int main()
 {
+	auto node = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->left = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->left->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->right = std::make_unique<RandomNode>(std::vector<int>(), false);
+	std::cout << "Node:" << std::endl;
+	print_node(node.get(), 0);
+
+	auto node_copy = node->copy();
+	std::cout << "Node copy:" << std::endl;
+	print_node(node_copy.get(), 0);
+
+	auto node_s_copy = node->shallow_copy();
+	std::cout << "Node shallow copy:" << std::endl;
+	print_node(node_s_copy.get(), 0);
+
 	using namespace hmdf;
 	using StrDataFrame = StdDataFrame<int>;
 
@@ -38,7 +76,8 @@ int main()
 
 		y.push_back(Xi.back());
 
-		Xi.erase(Xi.begin()); // remove index
+		// keeping index since features starts at index 1
+		// Xi.erase(Xi.begin()); // remove index
 		Xi.pop_back(); // remove y
 
 		X.push_back(Xi);
