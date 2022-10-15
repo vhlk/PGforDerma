@@ -26,6 +26,46 @@ double RandomTree::get_accuracy(const std::vector<std::vector<int>>& X, const st
 	return correct_preds / X.size();
 }
 
+std::tuple<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent) {
+	if (stddev_percent < 0 || stddev_percent > 1)
+		throw std::invalid_argument("stddev_percent out of range: " + std::to_string(stddev_percent) + " (should be between 0.0 and 1.0)");
+
+	std::uniform_int_distribution<> i_distr(1, 10);
+
+	// copy is expensive, could this be optimized?
+	auto tree1_root = root->copy();
+	auto tree2_root = other->root->copy();
+
+	int tree1_depth = get_depth();
+	int tree2_depth = other->get_depth();
+	int min_depth = std::min(tree1_depth, tree2_depth);
+	double two_thirds_depth = 2 * min_depth / 3.0;
+
+	std::normal_distribution<> n_distr(two_thirds_depth, min_depth * stddev_percent);
+
+	int target_depth = (int)n_distr(gen);
+
+	auto ptr1 = tree1_root.get();
+	auto ptr2 = tree2_root.get();
+
+	int curr_depth = 1;
+	while (true) {
+		bool ptr1_go_left = i_distr(gen) <= 5;
+		bool ptr2_go_left = i_distr(gen) <= 5;
+
+
+		if (curr_depth >= target_depth || ptr1->has_target() || ptr2->has_target()) {
+			switch_nodes(ptr1, ptr2, ptr1_go_left, ptr2_go_left); // TODO: make sure there is no memmory leak
+			return std::make_tuple(std::move(node_to_tree(std::move(tree1_root))), std::move(node_to_tree(std::move(tree2_root))));
+		}
+
+		ptr1 = ptr1_go_left ? ptr1->left.get() : ptr1->right.get();
+		ptr2 = ptr2_go_left ? ptr2->left.get() : ptr2->right.get();
+
+		curr_depth++;
+	}
+}
+
 void RandomTree::mutate_target(std::unique_ptr<RandomNode>& node) {
 	if (node->has_target()) {
 		node->mutate_target();
@@ -154,6 +194,13 @@ void RandomTree::print_tree(const RandomNode* node, int level) {
 	}
 }
 
+int RandomTree::get_depth(const std::unique_ptr<RandomNode>& node, int curr_depth) const {
+	if (node->has_target())
+		return curr_depth + 1;
+
+	return std::max(get_depth(node->left, curr_depth + 1), get_depth(node->right, curr_depth + 1));
+}
+
 int RandomTree::get_number_nodes(const RandomNode* curr_node) const {
 	if (curr_node->has_target())
 		return 1;
@@ -167,4 +214,26 @@ int RandomTree::get_number_nodes(const RandomNode* curr_node) const {
 
 
 	return res;
+}
+
+std::unique_ptr<RandomTree> RandomTree::node_to_tree(std::unique_ptr<RandomNode> node) {
+	auto tree = std::make_unique<RandomTree>(0, 0);
+	tree->root = std::move(node);
+
+	return tree;
+}
+
+void RandomTree::switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_left2) {
+	if (node1->has_target() || node2->has_target()) {
+		auto tmp = node1->copy();
+		node1->copy_from(node2->copy()); // any better way to convert node2 from pointer to unique ptr?
+		node2->copy_from(tmp);
+	} else {
+		auto& tmp_ptr_1 = go_left1 ? node1->left : node1->right;
+		auto tmp_ptr1_copy = tmp_ptr_1->copy();
+		auto& tmp_ptr_2 = go_left2 ? node2->left : node2->right;
+
+		tmp_ptr_1 = std::move(tmp_ptr_2);
+		tmp_ptr_2 = std::move(tmp_ptr1_copy);
+	}
 }

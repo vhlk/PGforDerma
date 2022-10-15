@@ -58,8 +58,27 @@ std::unique_ptr<RandomNode> RandomNode::shallow_copy() const {
 	new_node->set_feature(feature);
 	new_node->set_comparating_value(comparating_value);
 	new_node->set_target(target);
+	new_node->seen_features_in_branch = seen_features_in_branch;
 
 	return new_node;
+}
+
+void RandomNode::copy_from(const std::unique_ptr<RandomNode>& node_to_be_copied) {
+	comparator = node_to_be_copied->get_comparator();
+	feature = node_to_be_copied->get_feature();
+	comparating_value = node_to_be_copied->get_comparating_value();
+	target = node_to_be_copied->get_target();
+	seen_features_in_branch = node_to_be_copied->seen_features_in_branch;
+
+	if (node_to_be_copied->left)
+		left = node_to_be_copied->left->copy();
+	else if (left)
+		left.reset();
+
+	if (node_to_be_copied->right)
+		right = node_to_be_copied->right->copy();
+	else if (right)
+		right.reset();
 }
 
 void RandomNode::get_random_target() {

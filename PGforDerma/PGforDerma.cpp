@@ -11,7 +11,7 @@
 #include <DataFrame/DataFrame.h>
 
 
-void print_node(const RandomNode* node, int level) {
+void print_node(const RandomNode* node, int level=0) {
 	Conversions conversions;
 
 	if (node != nullptr) {
@@ -33,23 +33,47 @@ void print_node(const RandomNode* node, int level) {
 	}
 }
 
+void switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_left2) {
+	if (node1->has_target() || node2->has_target()) {
+		auto tmp = node1->copy();
+		node1->copy_from(node2->copy()); // any better way to convert node2 from pointer to unique ptr?
+		node2->copy_from(tmp);
+	}
+	else {
+		auto& tmp_ptr_1 = go_left1 ? node1->left : node1->right;
+		auto tmp_ptr1_copy = tmp_ptr_1->copy();
+		auto& tmp_ptr_2 = go_left2 ? node2->left : node2->right;
+
+		tmp_ptr_1 = std::move(tmp_ptr_2);
+		tmp_ptr_2 = std::move(tmp_ptr1_copy);
+	}
+}
+
 int main()
 {
 	auto node = std::make_unique<RandomNode>(std::vector<int>(), false);
 	node->left = std::make_unique<RandomNode>(std::vector<int>(), false);
 	node->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
-	node->left->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->left->right = std::make_unique<RandomNode>(std::vector<int>(), true);
+	node->left->left->left = std::make_unique<RandomNode>(std::vector<int>(), true);
+	node->left->left->right = std::make_unique<RandomNode>(std::vector<int>(), true);
 	node->right = std::make_unique<RandomNode>(std::vector<int>(), false);
+	node->right->right = std::make_unique<RandomNode>(std::vector<int>(), true);
+	node->right->left = std::make_unique<RandomNode>(std::vector<int>(), true);
 	std::cout << "Node:" << std::endl;
 	print_node(node.get(), 0);
 
 	auto node_copy = node->copy();
 	std::cout << "Node copy:" << std::endl;
-	print_node(node_copy.get(), 0);
+	print_node(node_copy.get());
 
 	auto node_s_copy = node->shallow_copy();
 	std::cout << "Node shallow copy:" << std::endl;
-	print_node(node_s_copy.get(), 0);
+	print_node(node_s_copy.get());
+
+	std::cout << "Node after switch:" << std::endl;
+	switch_nodes(node->left.get(), node->right.get(), true, false);
+	print_node(node.get());
 
 	using namespace hmdf;
 	using StrDataFrame = StdDataFrame<int>;
@@ -60,8 +84,9 @@ int main()
 
 	
 	auto tree = std::make_unique<RandomTree>(0.65, 0.65);
-	std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
+	//std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
 	//tree->print();
+	//std::cout << std::endl;
 	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
 
 	auto [num_rows, num_cols] = ibm_df.shape();
@@ -86,13 +111,29 @@ int main()
 	std::cout << "Accuracy: " << tree->get_accuracy(X, y) << std::endl;
 
 	tree->mutate_target();
+	std::cout << std::endl << "printing tree after mutation...\n" << std::endl;
+	tree->print();
+	std::cout << std::endl;
 	std::cout << "Accuracy after mutation: " << tree->get_accuracy(X, y) << std::endl;
 
 
-	tree = std::make_unique<RandomTree>(0.65, 0.65);
-	std::cout << std::endl << "printing second tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
-	//tree->print();
-	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
+	auto _ = std::make_unique<RandomTree>(0, 0);
+	_ = std::make_unique<RandomTree>(0, 0);
+	_ = std::make_unique<RandomTree>(0, 0);
+
+	auto tree1 = std::make_unique<RandomTree>(0.6, 0.6);
+	std::cout << std::endl << "printing second tree...(seed: " << tree1->get_seed() << ")\n" << std::endl;
+	tree1->print();
+	std::cout << std::endl;
+	std::cout << "num of nodes: " << tree1->get_number_nodes() << std::endl;
+
+
+	std::cout << "Trying to recombine..." << std::endl;
+	auto [son1,son2] = tree->recombine(tree1, 0.1);
+	std::cout << "Son 1:" << std::endl;
+	son1->print();
+	std::cout << "Son 2: " << std::endl;
+	son2->print();
 
 	std::cin.get();
 }

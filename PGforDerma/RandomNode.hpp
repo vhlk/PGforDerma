@@ -26,7 +26,8 @@ public:
 	void mutate_target() { get_random_target(); };
 
 	std::unique_ptr<RandomNode> copy() const;
-	std::unique_ptr<RandomNode> shallow_copy() const;	
+	std::unique_ptr<RandomNode> shallow_copy() const;
+	void copy_from(const std::unique_ptr<RandomNode>& node_to_be_copied);
 private:
 	NodeSeed* node_seed_singleton;
 	const int seed = node_seed_singleton->getInstance().get_seed();
