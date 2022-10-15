@@ -1,14 +1,14 @@
 #include "RandomTree.hpp"
 #include <string>
+#include <queue>
 
-RandomTree::RandomTree(double left_prob, double right_prob) {
+RandomTree::RandomTree(double left_prob, double right_prob, int max_nodes, int max_depth) {
+	if (max_depth < 0) throw std::invalid_argument("max_depth out of range: " + std::to_string(max_depth) + " (must be >= 0)");
+	if (max_nodes < 0) throw std::invalid_argument("max_nodes out of range: " + std::to_string(max_nodes) + " (must be >= 0)");
+
 	root = std::make_unique<RandomNode>(std::vector<int>{}, false);
 
-	bool has_inserted = try_insert(root, left_prob, right_prob, { root->get_feature() });
-
-	if (!has_inserted) {
-		root->if_not_set_target();
-	}
+	try_insert(root, left_prob, right_prob, { root->get_feature() }, max_nodes, max_depth);
 }
 
 void RandomTree::print() {
@@ -90,69 +90,84 @@ std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const s
 	return predict(node->right, X);
 }
 
-bool RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch)
-{
+void RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch, int max_nodes, int max_depth) {
 	std::uniform_real_distribution<> distr(0, 1);
 
-	bool has_inserted_left = false;
-	bool has_inserted_right = false;
+	std::queue<std::pair<RandomNode*, bool>> border;
+	border.push({ node.get(), true });
 
-	if (distr(gen) <= left_prob) {
-		insert_random_left(node, left_prob, right_prob, seen_features_in_branch);
-		has_inserted_left = true;
+	int inserted_nodes = 1;
+	int curr_depth = 1;
+
+	bool pass_start_level = false;
+	while (border.size() > 0 && (max_nodes == 0 || inserted_nodes < max_nodes) && (max_depth == 0 || curr_depth < max_depth)) {
+		auto curr = border.front(); border.pop();
+
+		if (curr.second)
+			curr_depth++;
+
+		bool has_inserted_left = false;
+		bool has_inserted_right = false;
+
+		if (distr(gen) <= left_prob) {
+			auto new_node = create_new_node(curr.first->seen_features_in_branch);
+			curr.first->left = std::move(new_node);
+
+			if (!curr.first->left->has_target())
+				border.push({ curr.first->left.get(), pass_start_level ? true : curr.second });
+
+			has_inserted_left = true;
+			inserted_nodes++;
+		}
+		if (distr(gen) <= right_prob) {
+			auto new_node = create_new_node(curr.first->seen_features_in_branch);
+			curr.first->right = std::move(new_node);
+
+			if (!curr.first->right->has_target())
+				border.push({ curr.first->right.get(), has_inserted_left ? false : pass_start_level ? true : curr.second });
+
+			has_inserted_right = true;
+			inserted_nodes++;
+		}
+
+		if (!has_inserted_left && has_inserted_right) {
+			curr.first->left = std::make_unique<RandomNode>(seen_features_in_branch, true);
+			inserted_nodes++;
+		}
+		if (!has_inserted_right && has_inserted_left) {
+			curr.first->right = std::make_unique<RandomNode>(seen_features_in_branch, true);
+			inserted_nodes++;
+		}
+
+		if (!has_inserted_left && !has_inserted_right) {
+			if (curr.second)
+				pass_start_level = true;
+
+			curr.first->if_not_set_target();
+		}
+		else {
+			pass_start_level = false;
+		}
 	}
-	if (distr(gen) <= right_prob) {
-		insert_random_right(node, left_prob, right_prob, seen_features_in_branch);
-		has_inserted_right = true;
+
+	while (border.size() > 0) {
+		auto curr = border.front(); border.pop();
+		curr.first->if_not_set_target();
 	}
 
-	if (!has_inserted_left && has_inserted_right)
-		node->left = std::make_unique<RandomNode>(seen_features_in_branch, true);
-	if (!has_inserted_right && has_inserted_left)
-		node->right = std::make_unique<RandomNode>(seen_features_in_branch, true);
 
-	return has_inserted_left || has_inserted_right;
 }
 
-void RandomTree::insert_random_left(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch) {
-	auto [new_node, new_features_branch] = create_new_node(seen_features_in_branch);
-
-	node->left = std::move(new_node);
-
-	if (!new_features_branch.has_value())
-		return;
-
-	bool inserted = try_insert(node->left, left_prob, right_prob, new_features_branch.value());
-	
-	if (!inserted)
-		node->left->if_not_set_target();
-}
-
-void RandomTree::insert_random_right(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch) {
-	auto [new_node, new_features_branch] = create_new_node(seen_features_in_branch);
-
-	node->right = std::move(new_node);
-
-	if (!new_features_branch.has_value())
-		return;
-
-	bool inserted = try_insert(node->right, left_prob, right_prob, new_features_branch.value());
-	
-	if (!inserted)
-		node->right->if_not_set_target();
-}
-
-std::tuple<std::unique_ptr<RandomNode>, std::optional<std::vector<int>>> RandomTree::create_new_node(const std::vector<int>& seen_features_in_branch) {
+std::unique_ptr<RandomNode> RandomTree::create_new_node(const std::vector<int>& seen_features_in_branch) {
 	auto new_node = std::make_unique<RandomNode>(seen_features_in_branch, false);
-
-	if (new_node->has_target())
-		return { std::move(new_node), std::nullopt };
 
 	std::vector<int> new_features_branch(seen_features_in_branch);
 	new_features_branch.push_back(new_node->get_feature());
 	new_features_branch.shrink_to_fit();
 
-	return  { std::move(new_node), new_features_branch };
+	new_node->seen_features_in_branch = new_features_branch;
+
+	return  new_node;
 }
 
 //void RandomTree::print_tree(const std::string& prefix, const RandomNode* node, bool isLeft) {

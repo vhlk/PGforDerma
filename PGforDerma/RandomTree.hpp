@@ -7,7 +7,7 @@
 
 class RandomTree {
 public:
-	RandomTree(double left_prob, double right_prob);
+	RandomTree(double left_prob, double right_prob, int max_nodes = 0, int max_depth = 0);
 
 	void print();
 	std::string predict(const std::vector<int>& X) { return predict(root, X); };
@@ -29,11 +29,9 @@ private:
 
 	std::string predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const;
 
-	bool try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch);
-	void insert_random_left(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch);
-	void insert_random_right(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch);
+	void try_insert(std::unique_ptr<RandomNode>& node, double left_prob, double right_prob, const std::vector<int>& seen_features_in_branch, int max_nodes = 0, int max_depth = 0);
 
-	std::tuple<std::unique_ptr<RandomNode>, std::optional<std::vector<int>>> create_new_node(const std::vector<int>& seen_features_in_branch);
+	std::unique_ptr<RandomNode> create_new_node(const std::vector<int>& seen_features_in_branch);
 	void print_tree(const RandomNode* node, int level);
 
 	TreeSeed* tree_seed_singleton;

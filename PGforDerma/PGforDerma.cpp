@@ -51,6 +51,13 @@ void switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_l
 
 int main()
 {
+	auto my_tree_gostosa = std::make_unique<RandomTree>(1, 1, 10);
+	my_tree_gostosa->print();
+	std::cout << "Num nodes: " << my_tree_gostosa->get_number_nodes() << std::endl << std::endl;
+	auto my_tree_gostosona = std::make_unique<RandomTree>(1, 1, 0, 5);
+	my_tree_gostosona->print();
+	std::cout << "Depth: " << my_tree_gostosona->get_depth() << std::endl << std::endl;
+
 	auto node = std::make_unique<RandomNode>(std::vector<int>(), false);
 	node->left = std::make_unique<RandomNode>(std::vector<int>(), false);
 	node->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
@@ -83,7 +90,7 @@ int main()
 	std::cout << ibm_df.col_idx_to_name(0) << ',' << ibm_df.col_idx_to_name(1) << ',' << ibm_df.col_idx_to_name(2) << std::endl;
 
 	
-	auto tree = std::make_unique<RandomTree>(0.65, 0.65);
+	auto tree = std::make_unique<RandomTree>(0.65, 0.65, 50, 10);
 	//std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
 	//tree->print();
 	//std::cout << std::endl;
@@ -121,7 +128,7 @@ int main()
 	_ = std::make_unique<RandomTree>(0, 0);
 	_ = std::make_unique<RandomTree>(0, 0);
 
-	auto tree1 = std::make_unique<RandomTree>(0.6, 0.6);
+	auto tree1 = std::make_unique<RandomTree>(0.6, 0.6, 50, 10);
 	std::cout << std::endl << "printing second tree...(seed: " << tree1->get_seed() << ")\n" << std::endl;
 	tree1->print();
 	std::cout << std::endl;
