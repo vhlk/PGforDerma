@@ -11,7 +11,7 @@ RandomTree::RandomTree(double left_prob, double right_prob, int max_nodes, int m
 	try_insert(root, left_prob, right_prob, { root->get_feature() }, max_nodes, max_depth);
 }
 
-void RandomTree::print() {
+void RandomTree::print() const {
 	print_tree(root.get(), 0);
 }
 
@@ -158,7 +158,7 @@ void RandomTree::try_insert(std::unique_ptr<RandomNode>& node, double left_prob,
 
 }
 
-std::unique_ptr<RandomNode> RandomTree::create_new_node(const std::vector<int>& seen_features_in_branch) {
+std::unique_ptr<RandomNode> RandomTree::create_new_node(const std::vector<int>& seen_features_in_branch) const {
 	auto new_node = std::make_unique<RandomNode>(seen_features_in_branch, false);
 
 	std::vector<int> new_features_branch(seen_features_in_branch);
@@ -190,7 +190,7 @@ std::unique_ptr<RandomNode> RandomTree::create_new_node(const std::vector<int>& 
 //	}
 //}
 
-void RandomTree::print_tree(const RandomNode* node, int level) {
+constexpr void RandomTree::print_tree(const RandomNode* node, int level) const {
 	if (node != nullptr) {
 		print_tree(node->left.get(), level + 1);
 
@@ -238,7 +238,7 @@ std::unique_ptr<RandomTree> RandomTree::node_to_tree(std::unique_ptr<RandomNode>
 	return tree;
 }
 
-void RandomTree::switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_left2) {
+void RandomTree::switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_left2) const {
 	if (node1->has_target() || node2->has_target()) {
 		auto tmp = node1->copy();
 		node1->copy_from(node2->copy()); // any better way to convert node2 from pointer to unique ptr?

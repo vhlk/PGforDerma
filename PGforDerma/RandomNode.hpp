@@ -29,7 +29,7 @@ public:
 	std::unique_ptr<RandomNode> shallow_copy() const;
 	void copy_from(const std::unique_ptr<RandomNode>& node_to_be_copied);
 private:
-	NodeSeed* node_seed_singleton;
+	const NodeSeed* node_seed_singleton;
 	const int seed = node_seed_singleton->getInstance().get_seed();
 	std::mt19937 gen = std::mt19937(seed);
 
