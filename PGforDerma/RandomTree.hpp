@@ -1,9 +1,9 @@
 #pragma once
 #include <iostream>
 #include <tuple>
-#include <optional>
 #include <random>
 #include "RandomNode.hpp"
+#include "Utils.hpp"
 
 class RandomTree {
 public:

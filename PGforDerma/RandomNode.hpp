@@ -1,8 +1,8 @@
 #pragma once
-#include <iostream>
 #include <vector>
 #include <random>
 #include "Definitions.hpp"
+#include "Utils.hpp"
 
 class RandomNode {
 public:
@@ -28,6 +28,7 @@ public:
 	std::unique_ptr<RandomNode> copy() const;
 	std::unique_ptr<RandomNode> shallow_copy() const;
 	void copy_from(const std::unique_ptr<RandomNode>& node_to_be_copied);
+
 private:
 	const NodeSeed* node_seed_singleton;
 	const int seed = node_seed_singleton->getInstance().get_seed();
@@ -39,6 +40,4 @@ private:
 	int feature; // from 'erythema' to 'Age'
 	int comparating_value; // [0 .. 3], except for family history (0 or 1)
 	int target = -1; // dissease ( [ 1 .. 7 ] )
-
-	template <typename T> T get_random_elem(const std::vector<T>& in);
 };

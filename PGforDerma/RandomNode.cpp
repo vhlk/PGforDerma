@@ -22,17 +22,17 @@ RandomNode::RandomNode(const std::vector<int>& seen_features_in_branch, bool is_
 	}
 
 	// get the feature for this node
-	feature = get_random_elem(features);
+	feature = Utils::get_random_elem(features, gen);
 
 	// get comparator
 	auto& comparators = conversions.get_feature_name(feature) == "Age" ? possible_values.comparators_age : possible_values.comparators;
-	comparator = get_random_elem(comparators);
+	comparator = Utils::get_random_elem(comparators, gen);
 
 	// get comparating (to) value
 	auto& comparating_values = conversions.get_feature_name(feature) == "Age" ? possible_values.values_age :
 		conversions.get_feature_name(feature) == "Family History" ? possible_values.values_hist_familiar : possible_values.values;
 
-	comparating_value = get_random_elem(comparating_values);
+	comparating_value = Utils::get_random_elem(comparating_values, gen);
 }
 
 void RandomNode::if_not_set_target() {
@@ -85,11 +85,5 @@ void RandomNode::get_random_target() {
 	PossibleValues possible_values;
 
 	auto& targets = possible_values.targets;
-	target = get_random_elem(targets);
-}
-
-template <typename T> 
-T RandomNode::get_random_elem(const std::vector<T>& in) {
-	std::uniform_int_distribution<> distr(0, (int)in.size() - 1);
-	return in.at(distr(gen));
+	target = Utils::get_random_elem(targets, gen);
 }

@@ -124,10 +124,6 @@ int main()
 	std::cout << "Accuracy after mutation: " << tree->get_accuracy(X, y) << std::endl;
 
 
-	auto _ = std::make_unique<RandomTree>(0, 0);
-	_ = std::make_unique<RandomTree>(0, 0);
-	_ = std::make_unique<RandomTree>(0, 0);
-
 	auto tree1 = std::make_unique<RandomTree>(0.6, 0.6, 50, 10);
 	std::cout << std::endl << "printing second tree...(seed: " << tree1->get_seed() << ")\n" << std::endl;
 	tree1->print();

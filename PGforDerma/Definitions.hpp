@@ -1,55 +1,16 @@
 #pragma once
 #include <iostream>
 #include <array>
-#include <vector>
-
-constexpr std::vector<int> make_vector_from_i_to_n(int i, int n);
-constexpr std::vector<int> make_vector_from_i_to_n(int i, int n, int steps);
+#include "Utils.hpp"
 
 struct PossibleValues {
-	const std::vector<int> comparators = make_vector_from_i_to_n(1, 6);
+	const std::vector<int> comparators = Utils::make_vector_from_i_to_n(1, 6);
 	const std::vector<int> comparators_age = { 1, 2, 3, 4 };
-	const std::vector<int> features = make_vector_from_i_to_n(1, 34);
-	const std::vector<int> values = make_vector_from_i_to_n(0, 3);
-	const std::vector<int> values_hist_familiar = make_vector_from_i_to_n(0, 1);
-	const std::vector<int> values_age = make_vector_from_i_to_n(15, 60, 15);
-	const std::vector<int> targets = make_vector_from_i_to_n(1, 6);
-};
-
-class NodeSeed {
-public:
-	static NodeSeed& getInstance()
-	{
-		static NodeSeed instance; // Guaranteed to be destroyed.
-		// Instantiated on first use.
-		return instance;
-	}
-
-	NodeSeed(NodeSeed const&) = delete;
-	void operator=(NodeSeed const&) = delete;
-
-	int get_seed() { return seed++;  }
-private:
-	NodeSeed() {}
-	int seed = 27'03;
-};
-
-class TreeSeed {
-public:
-	static TreeSeed& getInstance()
-	{
-		static TreeSeed instance; // Guaranteed to be destroyed.
-		// Instantiated on first use.
-		return instance;
-	}
-
-	TreeSeed(TreeSeed const&) = delete;
-	void operator=(TreeSeed const&) = delete;
-
-	int get_seed() { return seed++; }
-private:
-	TreeSeed() {}
-	int seed = 0327;
+	const std::vector<int> features = Utils::make_vector_from_i_to_n(1, 34);
+	const std::vector<int> values = Utils::make_vector_from_i_to_n(0, 3);
+	const std::vector<int> values_hist_familiar = Utils::make_vector_from_i_to_n(0, 1);
+	const std::vector<int> values_age = Utils::make_vector_from_i_to_n(15, 60, 15);
+	const std::vector<int> targets = Utils::make_vector_from_i_to_n(1, 6);
 };
 
 struct Conversions {
@@ -146,21 +107,3 @@ struct Comparations {
 		}
 	}
 };
-
-constexpr std::vector<int> make_vector_from_i_to_n(int i, int n) {
-	std::vector<int> res;
-	for (int j = i; j <= n; j++) {
-		res.push_back(j);
-	}
-
-	return res;
-}
-
-constexpr std::vector<int> make_vector_from_i_to_n(int i, int n, int steps) {
-	std::vector<int> res;
-	for (int j = i; j <= n; j+=steps) {
-		res.push_back(j);
-	}
-
-	return res;
-}
