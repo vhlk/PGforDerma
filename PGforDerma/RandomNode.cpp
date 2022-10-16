@@ -41,6 +41,24 @@ void RandomNode::if_not_set_target() {
 	}
 }
 
+void RandomNode::mutate_comparator() {
+	Conversions conversions;
+	PossibleValues possible_values;
+
+	auto& comparators = conversions.get_feature_name(feature) == "Age" ? possible_values.comparators_age : possible_values.comparators;
+	comparator = Utils::get_random_elem(comparators, gen);
+}
+
+void RandomNode::mutate_comparating_value() {
+	Conversions conversions;
+	PossibleValues possible_values;
+
+	auto& comparating_values = conversions.get_feature_name(feature) == "Age" ? possible_values.values_age :
+		conversions.get_feature_name(feature) == "Family History" ? possible_values.values_hist_familiar : possible_values.values;
+
+	comparating_value = Utils::get_random_elem(comparating_values, gen);
+}
+
 std::unique_ptr<RandomNode> RandomNode::copy() const {
 	auto new_node = shallow_copy();
 

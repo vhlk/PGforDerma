@@ -80,6 +80,34 @@ void RandomTree::mutate_target(std::unique_ptr<RandomNode>& node) {
 		return mutate_target(node->right);
 }
 
+void RandomTree::mutate_aux(std::unique_ptr<RandomNode>& node, double prob_finding_node, std::function<void(RandomTree*, std::unique_ptr<RandomNode>&)> mutate_fun) {
+	if (node->has_target()) return;
+
+	std::uniform_real_distribution<> r_distr(0, 1);
+
+	bool mutate_this = r_distr(gen) <= prob_finding_node;
+
+	if (!mutate_this) {
+		bool try_mutate_left = r_distr(gen) < 0.5;
+
+		if (try_mutate_left && !node->left->has_target())
+			return mutate_aux(node->left, prob_finding_node, mutate_fun);
+
+		if (!try_mutate_left && !node->right->has_target())
+			return mutate_aux(node->right, prob_finding_node, mutate_fun);
+	}
+
+	mutate_fun(this, node);
+}
+
+void RandomTree::mutate_comparator_(std::unique_ptr<RandomNode>& node) {
+	node->mutate_comparator();
+}
+
+void RandomTree::mutate_comparating_value_(std::unique_ptr<RandomNode>& node) {
+	node->mutate_comparating_value();
+}
+
 std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const {
 	if (node->has_target())
 		return conversions->get_target_name(node->get_target());

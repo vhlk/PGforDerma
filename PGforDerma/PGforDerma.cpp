@@ -137,6 +137,16 @@ int main()
 	son1->print();
 	std::cout << "Son 2: " << std::endl;
 	son2->print();
+	std::cout << std::endl;
+
+	std::cout << "Mutating comparator of son2:" << std::endl;
+	son2->mutate_comparator(0.2);
+	son2->print();
+	std::cout << std::endl;
+	std::cout << "Mutating comparating value of of son2:" << std::endl;
+	son2->mutate_comparating_value(0.2);
+	son2->print();
+	std::cout << std::endl;
 
 	std::cin.get();
 }

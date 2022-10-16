@@ -16,10 +16,12 @@ public:
 	void if_not_set_target();
 	constexpr int get_comparator() const { return comparator; }
 	constexpr void set_comparator(const int comparator) { this->comparator = comparator; }
+	void mutate_comparator();
 	constexpr int get_feature() const { return feature; }
 	constexpr void set_feature(const int feature) { this->feature = feature; }
 	constexpr int get_comparating_value() const { return comparating_value; }
 	constexpr void set_comparating_value(const int comparating_value) { this->comparating_value = comparating_value; }
+	void mutate_comparating_value();
 	constexpr bool has_target() const { return target != -1; }
 	constexpr int get_target() const { return target; }
 	constexpr void set_target(const int target) { this->target = target; }

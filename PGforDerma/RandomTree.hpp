@@ -2,6 +2,7 @@
 #include <iostream>
 #include <tuple>
 #include <random>
+#include <functional>
 #include "RandomNode.hpp"
 #include "Utils.hpp"
 
@@ -14,6 +15,8 @@ public:
 	double get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
 	void mutate_target() { mutate_target(root); };
+	void mutate_comparator(double prob_finding_node) { mutate_aux(root, prob_finding_node, &RandomTree::mutate_comparator_); };
+	void mutate_comparating_value(double prob_finding_node) { mutate_aux(root, prob_finding_node, &RandomTree::mutate_comparating_value_); };
 	std::tuple<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent);
 
 	constexpr int get_seed() const { return seed; }
@@ -26,6 +29,9 @@ private:
 	std::unique_ptr<RandomNode> root;
 
 	void mutate_target(std::unique_ptr<RandomNode>& node);
+	void mutate_aux(std::unique_ptr<RandomNode>& node, double prob_finding_node, std::function<void(RandomTree*, std::unique_ptr<RandomNode>& node)> mutate_fun);
+	void mutate_comparator_(std::unique_ptr<RandomNode>& node);
+	void mutate_comparating_value_(std::unique_ptr<RandomNode>& node);
 
 	std::string predict(const std::unique_ptr<RandomNode>& node, const std::vector<int>& X) const;
 
