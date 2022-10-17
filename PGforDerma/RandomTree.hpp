@@ -14,10 +14,12 @@ public:
 	std::string predict(const std::vector<int>& X) { return predict(root, X); };
 	double get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
+	std::unique_ptr<RandomTree> copy();
+
 	void mutate_target() { mutate_target(root); };
 	void mutate_comparator(double prob_finding_node) { mutate_aux(root, prob_finding_node, &RandomTree::mutate_comparator_); };
 	void mutate_comparating_value(double prob_finding_node) { mutate_aux(root, prob_finding_node, &RandomTree::mutate_comparating_value_); };
-	std::tuple<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent);
+	std::pair<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent);
 
 	constexpr int get_seed() const { return seed; }
 

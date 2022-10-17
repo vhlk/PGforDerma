@@ -4,149 +4,150 @@
 #include <iostream>
 #include "PGforDerma.hpp"
 #include "Definitions.hpp"
-#include "RandomNode.hpp"
 #include "RandomTree.hpp"
-#include <array>
 #include <random>
 #include <DataFrame/DataFrame.h>
 
 
-void print_node(const RandomNode* node, int level=0) {
-	Conversions conversions;
+std::vector<std::vector<int>> load_dataset(std::string dataset_path_name);
+std::tuple<std::vector<std::vector<int>>, std::vector<int>, std::vector<std::vector<int>>, std::vector<int>> split_data(const std::vector<std::vector<int>>& data, double split_percentage);
+void sort_population(std::vector<std::unique_ptr<RandomTree>>& population, const std::vector<std::vector<int>>& X, const std::vector<int>& y);
+void insert_sorted(std::vector<std::unique_ptr<RandomTree>>& vec, std::unique_ptr<RandomTree> item, const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
-	if (node != nullptr) {
-		print_node(node->left.get(), level + 1);
+int main() {
+	using namespace std;
 
-		std::string spacing(8 * level, ' ');
+	const int POPULATION_SIZE = 100;
+	const double LEFT_PROB = 0.6;
+	const double RIGHT_PROB = 0.6;
+	const int MAX_NODES = 50;
+	const int MAX_DEPTH = 15;
 
-		if (node->has_target()) {
-			std::cout << spacing << "-> " << conversions.get_target_name(node->get_target()) << std::endl;
+	const int PATIENCE = 50;
+
+	const double TRAINING_PERCENTAGE = 0.70;
+
+
+	auto data = load_dataset("/dataset/Dermatology_new.csv");	
+
+	// shuffle
+	auto rng = std::default_random_engine{};
+	std::shuffle(data.begin(), data.end(), rng);
+
+	auto [X_train, y_train, X_test, y_test] = split_data(data, TRAINING_PERCENTAGE);
+
+	vector<unique_ptr<RandomTree>> population;
+
+	for (int i = 0; i < POPULATION_SIZE; i++)
+		population.push_back(make_unique<RandomTree>(LEFT_PROB, RIGHT_PROB, MAX_NODES, MAX_DEPTH));
+
+	sort_population(population, X_train, y_train);
+
+	double best_acc = population[0]->get_accuracy(X_train, y_train);
+
+	int curr_patience = 0;
+
+	while (curr_patience < PATIENCE) {
+		auto& pai1 = population[0];
+		auto& pai2 = population[1];
+		auto [filho1, filho2] = pai1->recombine(pai2, 0.1);
+		filho1->mutate_comparating_value(0.2);
+		filho1->mutate_comparator(0.2);
+		filho1->mutate_target();
+		filho2->mutate_comparating_value(0.2);
+		filho2->mutate_comparator(0.2);
+		filho2->mutate_target();
+
+		insert_sorted(population, std::move(filho1), X_train, y_train);
+		insert_sorted(population, std::move(filho2), X_train, y_train);
+		population.pop_back();
+		population.pop_back();
+		
+		auto curr_best_acc = population[0]->get_accuracy(X_train, y_train);
+
+		if (curr_best_acc > best_acc) {
+			std::cout << "Acc improved from " << best_acc << " to " << curr_best_acc << std::endl;
+			best_acc = curr_best_acc;
 		}
-		else {
-			std::string comparison = "(" + std::to_string(node->get_feature()) + " " +
-				conversions.get_string_comparator(node->get_comparator()) + " " + std::to_string(node->get_comparating_value()) + ")";
-
-			std::cout << spacing << "-> " << comparison << std::endl;
-		}
-
-		print_node(node->right.get(), level + 1);
 	}
+
+	cin.get();
 }
 
-void switch_nodes(RandomNode* node1, RandomNode* node2, bool go_left1, bool go_left2) {
-	if (node1->has_target() || node2->has_target()) {
-		auto tmp = node1->copy();
-		node1->copy_from(node2->copy()); // any better way to convert node2 from pointer to unique ptr?
-		node2->copy_from(tmp);
-	}
-	else {
-		auto& tmp_ptr_1 = go_left1 ? node1->left : node1->right;
-		auto tmp_ptr1_copy = tmp_ptr_1->copy();
-		auto& tmp_ptr_2 = go_left2 ? node2->left : node2->right;
+void sort_population(std::vector<std::unique_ptr<RandomTree>>& population, const std::vector<std::vector<int>>& X, const std::vector<int>& y) {
+	using namespace std;
 
-		tmp_ptr_1 = std::move(tmp_ptr_2);
-		tmp_ptr_2 = std::move(tmp_ptr1_copy);
-	}
+	auto sort_fun = [X, y](const unique_ptr<RandomTree>& rt1, const unique_ptr<RandomTree>& rt2) {
+		return rt1->get_accuracy(X, y) > rt2->get_accuracy(X, y); // desc order
+	};
+
+	sort(population.begin(), population.end(), sort_fun);
 }
 
-int main()
+void insert_sorted(std::vector<std::unique_ptr<RandomTree>>& vec, std::unique_ptr<RandomTree> item, const std::vector<std::vector<int>>& X, const std::vector<int>& y)
 {
-	auto my_tree_gostosa = std::make_unique<RandomTree>(1, 1, 10);
-	my_tree_gostosa->print();
-	std::cout << "Num nodes: " << my_tree_gostosa->get_number_nodes() << std::endl << std::endl;
-	auto my_tree_gostosona = std::make_unique<RandomTree>(1, 1, 0, 5);
-	my_tree_gostosona->print();
-	std::cout << "Depth: " << my_tree_gostosona->get_depth() << std::endl << std::endl;
+	auto acc = item->get_accuracy(X, y);
 
-	auto node = std::make_unique<RandomNode>(std::vector<int>(), false);
-	node->left = std::make_unique<RandomNode>(std::vector<int>(), false);
-	node->left->left = std::make_unique<RandomNode>(std::vector<int>(), false);
-	node->left->right = std::make_unique<RandomNode>(std::vector<int>(), true);
-	node->left->left->left = std::make_unique<RandomNode>(std::vector<int>(), true);
-	node->left->left->right = std::make_unique<RandomNode>(std::vector<int>(), true);
-	node->right = std::make_unique<RandomNode>(std::vector<int>(), false);
-	node->right->right = std::make_unique<RandomNode>(std::vector<int>(), true);
-	node->right->left = std::make_unique<RandomNode>(std::vector<int>(), true);
-	std::cout << "Node:" << std::endl;
-	print_node(node.get(), 0);
+	for (int i = 0; i < vec.size(); i++) {
+		if (acc > vec[i]->get_accuracy(X, y)) {
+			vec.insert(vec.begin() + i, std::move(item));
+			return;
+		}
+	}
 
-	auto node_copy = node->copy();
-	std::cout << "Node copy:" << std::endl;
-	print_node(node_copy.get());
+	vec.push_back(std::move(item));
+}
 
-	auto node_s_copy = node->shallow_copy();
-	std::cout << "Node shallow copy:" << std::endl;
-	print_node(node_s_copy.get());
-
-	std::cout << "Node after switch:" << std::endl;
-	switch_nodes(node->left.get(), node->right.get(), true, false);
-	print_node(node.get());
-
+std::vector<std::vector<int>> load_dataset(std::string dataset_path_name) {
+	using namespace std;
 	using namespace hmdf;
 	using StrDataFrame = StdDataFrame<int>;
-
 	StrDataFrame ibm_df;
-	ibm_df.read((std::string(ROOT_DIR) + "/dataset/Dermatology_new.csv").c_str(), io_format::csv2);
-	std::cout << ibm_df.col_idx_to_name(0) << ',' << ibm_df.col_idx_to_name(1) << ',' << ibm_df.col_idx_to_name(2) << std::endl;
 
-	
-	auto tree = std::make_unique<RandomTree>(0.65, 0.65, 50, 10);
-	//std::cout << std::endl << "printing tree...(seed: " << tree->get_seed() << ")\n" << std::endl;
-	//tree->print();
-	//std::cout << std::endl;
-	std::cout << "num of nodes: " << tree->get_number_nodes() << std::endl;
+	ibm_df.read((std::string(ROOT_DIR) + dataset_path_name).c_str(), io_format::csv2);
 
 	auto [num_rows, num_cols] = ibm_df.shape();
-	
-	std::vector<std::vector<int>> X;
-	std::vector<int> y;
+
+	vector<vector<int>> data_as_vector;
 
 	for (int i = 0; i < num_rows; i++) {
 		auto row = ibm_df.get_row<int>(i);
-
-		auto Xi = row.get_vector<int>();
-
-		y.push_back(Xi.back());
-
-		// keeping index since features starts at index 1
-		// Xi.erase(Xi.begin()); // remove index
-		Xi.pop_back(); // remove y
-
-		X.push_back(Xi);
+		auto& Xi = row.get_vector<int>();
+		data_as_vector.push_back(Xi);
 	}
 
-	std::cout << "Accuracy: " << tree->get_accuracy(X, y) << std::endl;
+	return data_as_vector;
+}
 
-	tree->mutate_target();
-	std::cout << std::endl << "printing tree after mutation...\n" << std::endl;
-	tree->print();
-	std::cout << std::endl;
-	std::cout << "Accuracy after mutation: " << tree->get_accuracy(X, y) << std::endl;
+std::tuple<std::vector<std::vector<int>>, std::vector<int>, std::vector<std::vector<int>>, std::vector<int>> split_data(const std::vector<std::vector<int>>& data, double split_percentage) {
+	using namespace std;
 
+	vector<vector<int>> X;
+	vector<int> y;
 
-	auto tree1 = std::make_unique<RandomTree>(0.6, 0.6, 50, 10);
-	std::cout << std::endl << "printing second tree...(seed: " << tree1->get_seed() << ")\n" << std::endl;
-	tree1->print();
-	std::cout << std::endl;
-	std::cout << "num of nodes: " << tree1->get_number_nodes() << std::endl;
+	for (auto elem : data) {
+		y.push_back(elem.back());
 
+		elem.pop_back(); // removing 'y'
+		X.push_back(elem);
+	}
 
-	std::cout << "Trying to recombine..." << std::endl;
-	auto [son1,son2] = tree->recombine(tree1, 0.1);
-	std::cout << "Son 1:" << std::endl;
-	son1->print();
-	std::cout << "Son 2: " << std::endl;
-	son2->print();
-	std::cout << std::endl;
+	int training_last_row = (int) (data.size() * split_percentage);
 
-	std::cout << "Mutating comparator of son2:" << std::endl;
-	son2->mutate_comparator(0.2);
-	son2->print();
-	std::cout << std::endl;
-	std::cout << "Mutating comparating value of of son2:" << std::endl;
-	son2->mutate_comparating_value(0.2);
-	son2->print();
-	std::cout << std::endl;
+	vector<vector<int>> X_train;
+	vector<int> y_train;
+	vector<vector<int>> X_test;
+	vector<int> y_test;
 
-	std::cin.get();
+	for (int i = 0; i <= training_last_row; i++) {
+		X_train.push_back(X[i]);
+		y_train.push_back(y[i]);
+	}
+
+	for (int i = training_last_row + 1; i < X.size(); i++) {
+		X_test.push_back(X[i]);
+		y_test.push_back(y[i]);
+	}
+
+	return std::make_tuple(X_train, y_train, X_test, y_test);
 }

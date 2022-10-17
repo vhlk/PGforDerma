@@ -26,7 +26,14 @@ double RandomTree::get_accuracy(const std::vector<std::vector<int>>& X, const st
 	return correct_preds / X.size();
 }
 
-std::tuple<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent) {
+std::unique_ptr<RandomTree> RandomTree::copy() {
+	auto tree = std::make_unique<RandomTree>(0, 0, 1, 1);
+	tree->root = root->copy();
+	
+	return tree;
+}
+
+std::pair<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::recombine(const std::unique_ptr<RandomTree>& other, double stddev_percent) {
 	if (stddev_percent < 0 || stddev_percent > 1)
 		throw std::invalid_argument("stddev_percent out of range: " + std::to_string(stddev_percent) + " (should be between 0.0 and 1.0)");
 
@@ -56,7 +63,7 @@ std::tuple<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree:
 
 		if (curr_depth >= target_depth || ptr1->has_target() || ptr2->has_target()) {
 			switch_nodes(ptr1, ptr2, ptr1_go_left, ptr2_go_left); // TODO: make sure there is no memmory leak
-			return std::make_tuple(std::move(node_to_tree(std::move(tree1_root))), std::move(node_to_tree(std::move(tree2_root))));
+			return std::make_pair(std::move(node_to_tree(std::move(tree1_root))), std::move(node_to_tree(std::move(tree2_root))));
 		}
 
 		ptr1 = ptr1_go_left ? ptr1->left.get() : ptr1->right.get();
