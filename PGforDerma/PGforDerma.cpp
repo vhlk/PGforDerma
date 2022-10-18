@@ -11,8 +11,8 @@
 
 std::vector<std::vector<int>> load_dataset(std::string dataset_path_name);
 std::tuple<std::vector<std::vector<int>>, std::vector<int>, std::vector<std::vector<int>>, std::vector<int>> split_data(const std::vector<std::vector<int>>& data, double split_percentage);
-void sort_population(std::vector<std::unique_ptr<RandomTree>>& population, const std::vector<std::vector<int>>& X, const std::vector<int>& y);
-void insert_sorted(std::vector<std::unique_ptr<RandomTree>>& vec, std::unique_ptr<RandomTree> item, const std::vector<std::vector<int>>& X, const std::vector<int>& y);
+void sort_population(std::vector<std::pair<std::unique_ptr<RandomTree>,double>>& population);
+void insert_sorted(std::vector<std::pair<std::unique_ptr<RandomTree>,double>>& vec, std::unique_ptr<RandomTree> item, double item_acc);
 
 int main() {
 	using namespace std;
@@ -23,12 +23,14 @@ int main() {
 	const int MAX_NODES = 50;
 	const int MAX_DEPTH = 15;
 
-	const int PATIENCE = 50;
+	const int NUM_CHILDREN = POPULATION_SIZE / 2;
+
+	const int PATIENCE = 500;
 
 	const double TRAINING_PERCENTAGE = 0.70;
 
 
-	auto data = load_dataset("/dataset/Dermatology_new.csv");	
+	auto data = load_dataset("/dataset/Dermatology_new_features_selected.csv");	
 
 	// shuffle
 	auto rng = std::default_random_engine{};
@@ -36,66 +38,73 @@ int main() {
 
 	auto [X_train, y_train, X_test, y_test] = split_data(data, TRAINING_PERCENTAGE);
 
-	vector<unique_ptr<RandomTree>> population;
+	vector<pair<unique_ptr<RandomTree>, double>> population;
 
-	for (int i = 0; i < POPULATION_SIZE; i++)
-		population.push_back(make_unique<RandomTree>(LEFT_PROB, RIGHT_PROB, MAX_NODES, MAX_DEPTH));
+	for (int i = 0; i < POPULATION_SIZE; i++) {
+		auto tree = make_unique<RandomTree>(LEFT_PROB, RIGHT_PROB, MAX_NODES, MAX_DEPTH);
+		population.push_back(make_pair(move(tree), tree->get_accuracy(X_train, y_train)));
+	}
 
-	sort_population(population, X_train, y_train);
+	sort_population(population);
 
-	double best_acc = population[0]->get_accuracy(X_train, y_train);
+	double best_acc = population[0].second;
 
 	int curr_patience = 0;
 
 	while (curr_patience < PATIENCE) {
-		auto& pai1 = population[0];
-		auto& pai2 = population[1];
-		auto [filho1, filho2] = pai1->recombine(pai2, 0.1);
-		filho1->mutate_comparating_value(0.2);
-		filho1->mutate_comparator(0.2);
-		filho1->mutate_target();
-		filho2->mutate_comparating_value(0.2);
-		filho2->mutate_comparator(0.2);
-		filho2->mutate_target();
+		auto pai1 = population[0].first->copy();
+		auto pai2 = population[1].first->copy();
 
-		insert_sorted(population, std::move(filho1), X_train, y_train);
-		insert_sorted(population, std::move(filho2), X_train, y_train);
-		population.pop_back();
-		population.pop_back();
+		for (int i = 0; i < NUM_CHILDREN / 2; i++) {
+			auto [filho1, filho2] = pai1->recombine(pai2, 0.2);
+			filho1->mutate_comparating_value(0.2);
+			filho1->mutate_comparator(0.2);
+			filho1->mutate_target();
+			filho2->mutate_comparating_value(0.2);
+			filho2->mutate_comparator(0.2);
+			filho2->mutate_target();
+
+			insert_sorted(population, std::move(filho1), filho1->get_accuracy(X_train, y_train));
+			insert_sorted(population, std::move(filho2), filho2->get_accuracy(X_train, y_train));
+		}
+
+		for (int i = 0; i < NUM_CHILDREN / 2; i++) {
+			population.pop_back();
+			population.pop_back();
+		}
 		
-		auto curr_best_acc = population[0]->get_accuracy(X_train, y_train);
+		auto curr_best_acc = population[0].second;
+
+		curr_patience++;
 
 		if (curr_best_acc > best_acc) {
 			std::cout << "Acc improved from " << best_acc << " to " << curr_best_acc << std::endl;
 			best_acc = curr_best_acc;
+			curr_patience = 0;
 		}
 	}
-
-	cin.get();
+	std::cout << "Terminou" << std::endl;
 }
 
-void sort_population(std::vector<std::unique_ptr<RandomTree>>& population, const std::vector<std::vector<int>>& X, const std::vector<int>& y) {
+void sort_population(std::vector<std::pair<std::unique_ptr<RandomTree>, double>>& population) {
 	using namespace std;
 
-	auto sort_fun = [X, y](const unique_ptr<RandomTree>& rt1, const unique_ptr<RandomTree>& rt2) {
-		return rt1->get_accuracy(X, y) > rt2->get_accuracy(X, y); // desc order
+	auto sort_fun = [](const std::pair<std::unique_ptr<RandomTree>, double>& rt1, const std::pair<std::unique_ptr<RandomTree>, double>& rt2) {
+		return rt1.second > rt2.second; // desc order
 	};
 
 	sort(population.begin(), population.end(), sort_fun);
 }
 
-void insert_sorted(std::vector<std::unique_ptr<RandomTree>>& vec, std::unique_ptr<RandomTree> item, const std::vector<std::vector<int>>& X, const std::vector<int>& y)
-{
-	auto acc = item->get_accuracy(X, y);
-
+void insert_sorted(std::vector<std::pair<std::unique_ptr<RandomTree>,double>>& vec, std::unique_ptr<RandomTree> item, double item_acc) {
 	for (int i = 0; i < vec.size(); i++) {
-		if (acc > vec[i]->get_accuracy(X, y)) {
-			vec.insert(vec.begin() + i, std::move(item));
+		if (item_acc > vec[i].second) {
+			vec.insert(vec.begin() + i, std::make_pair(std::move(item), item_acc));
 			return;
 		}
 	}
 
-	vec.push_back(std::move(item));
+	vec.push_back(std::make_pair(std::move(item), item_acc));
 }
 
 std::vector<std::vector<int>> load_dataset(std::string dataset_path_name) {

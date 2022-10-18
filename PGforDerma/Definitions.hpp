@@ -6,7 +6,7 @@
 struct PossibleValues {
 	const std::vector<int> comparators = Utils::make_vector_from_i_to_n(1, 6);
 	const std::vector<int> comparators_age = { 1, 2, 3, 4 };
-	const std::vector<int> features = Utils::make_vector_from_i_to_n(1, 34);
+	const std::vector<int> features = {5, 6, 9, 11, 13, 15, 19, 20, 22, 23, 24, 26, 29};
 	const std::vector<int> values = Utils::make_vector_from_i_to_n(0, 3);
 	const std::vector<int> values_hist_familiar = Utils::make_vector_from_i_to_n(0, 1);
 	const std::vector<int> values_age = Utils::make_vector_from_i_to_n(15, 60, 15);
@@ -14,6 +14,15 @@ struct PossibleValues {
 };
 
 struct Conversions {
+	constexpr int get_index_for_feature(int feature) {
+		PossibleValues pv;
+		for (int i = 0; i < pv.features.size(); i++) {
+			if (pv.features[i] == feature)
+				return i;
+		}
+
+		throw std::invalid_argument("index out of range");
+	}
 	constexpr std::string get_string_comparator(int comparator) {
 		switch (comparator) {
 			case (1): return ">";

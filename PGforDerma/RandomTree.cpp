@@ -40,8 +40,8 @@ std::pair<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::
 	std::uniform_int_distribution<> i_distr(1, 10);
 
 	// copy is expensive, could this be optimized?
-	auto tree1_root = root->copy();
-	auto tree2_root = other->root->copy();
+	auto new_tree1 = this->copy();
+	auto new_tree2 = other->copy();
 
 	int tree1_depth = get_depth();
 	int tree2_depth = other->get_depth();
@@ -52,8 +52,8 @@ std::pair<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::
 
 	int target_depth = (int)n_distr(gen);
 
-	auto ptr1 = tree1_root.get();
-	auto ptr2 = tree2_root.get();
+	auto ptr1 = new_tree1->root.get();
+	auto ptr2 = new_tree2->root.get();
 
 	int curr_depth = 1;
 	while (true) {
@@ -63,7 +63,7 @@ std::pair<std::unique_ptr<RandomTree>, std::unique_ptr<RandomTree>> RandomTree::
 
 		if (curr_depth >= target_depth || ptr1->has_target() || ptr2->has_target()) {
 			switch_nodes(ptr1, ptr2, ptr1_go_left, ptr2_go_left); // TODO: make sure there is no memmory leak
-			return std::make_pair(std::move(node_to_tree(std::move(tree1_root))), std::move(node_to_tree(std::move(tree2_root))));
+			return std::make_pair(std::move(new_tree1), std::move(new_tree2));
 		}
 
 		ptr1 = ptr1_go_left ? ptr1->left.get() : ptr1->right.get();
@@ -119,7 +119,7 @@ std::string RandomTree::predict(const std::unique_ptr<RandomNode>& node, const s
 	if (node->has_target())
 		return conversions->get_target_name(node->get_target());
 
-	if (comparations->compare(X[node->get_feature()], conversions->get_string_comparator(node->get_comparator()), node->get_comparating_value()))
+	if (comparations->compare(X[conversions->get_index_for_feature(node->get_feature())], conversions->get_string_comparator(node->get_comparator()), node->get_comparating_value()))
 		return predict(node->left, X);
 	
 	return predict(node->right, X);
@@ -267,7 +267,7 @@ int RandomTree::get_number_nodes(const RandomNode* curr_node) const {
 }
 
 std::unique_ptr<RandomTree> RandomTree::node_to_tree(std::unique_ptr<RandomNode> node) {
-	auto tree = std::make_unique<RandomTree>(0, 0);
+	auto tree = std::make_unique<RandomTree>(0, 0, 1, 1);
 	tree->root = std::move(node);
 
 	return tree;
