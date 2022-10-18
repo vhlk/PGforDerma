@@ -53,9 +53,9 @@ int main() {
 	std::cout << "Best acc is with Population Size: " << best_pop << std::endl;
 
 	double best_acc_lr_prob = 0;
-	int best_lr_prob = left_right_prob[0];
+	double best_lr_prob = left_right_prob[0];
 	for (auto lr_prob : left_right_prob) {
-		auto [acc, _, __] = run_with_executions(best_pop, lr_prob, left_right_prob[0], max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
+		auto [acc, _, __] = run_with_executions(best_pop, lr_prob, lr_prob, max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
 		std::cout << "Acc for left and right prob of " << lr_prob << ": " << acc << std::endl;
 		if (acc > best_acc_lr_prob) {
 			best_lr_prob = lr_prob;
@@ -89,7 +89,7 @@ int main() {
 	std::cout << "Best acc is with max depth of: " << best_max_depth << std::endl;
 
 	double best_acc_rec_prob = 0;
-	int best_rec_prob = rec_prob[0];
+	double best_rec_prob = rec_prob[0];
 	for (auto r_prob : rec_prob) {
 		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, r_prob, mut_prob[0], X_train, y_train, children_creation[0]);
 		std::cout << "Acc for rec prob of " << r_prob << ": " << acc << std::endl;
@@ -101,7 +101,7 @@ int main() {
 	std::cout << "Best acc is with rec prob of: " << best_rec_prob << std::endl;
 
 	double best_acc_mut_prob = 0;
-	int best_mut_prob = mut_prob[0];
+	double best_mut_prob = mut_prob[0];
 	for (auto m_prob : mut_prob) {
 		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, best_rec_prob, m_prob, X_train, y_train, children_creation[0]);
 		std::cout << "Acc for mut prob of " << m_prob << ": " << acc << std::endl;
