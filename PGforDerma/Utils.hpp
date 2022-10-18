@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <random>
+#include <numeric>
 
 class Utils {
 public:
@@ -12,6 +13,27 @@ public:
 
 	static std::vector<int> make_vector_from_i_to_n(int i, int n);
 	static std::vector<int> make_vector_from_i_to_n(int i, int n, int steps);
+	
+	template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	constexpr static double get_average(const std::vector<T>& in) {
+		if (in.empty()) return 0;
+
+		const double count = (double) in.size();
+		return std::reduce(in.begin(), in.end()) / count;
+	}
+	template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	constexpr static double get_stddev(const std::vector<T>& in, double avg) {
+		double sum_pow_diff_mean = 0;
+		for (T elem : in)
+			sum_pow_diff_mean += pow(elem - avg, 2);
+
+		return sqrt(sum_pow_diff_mean / in.size());
+	}
+	template <typename T, typename = typename std::enable_if<std::is_arithmetic<T>::value, T>::type>
+	constexpr static double get_stddev(const std::vector<T>& in) {
+		auto avg = get_average(in);
+		return get_stddev(in, avg);
+	}
 };
 
 class NodeSeed {

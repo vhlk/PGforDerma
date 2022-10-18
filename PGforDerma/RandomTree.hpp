@@ -11,6 +11,7 @@ public:
 	RandomTree(double left_prob, double right_prob, int max_nodes = 0, int max_depth = 0);
 
 	void print() const;
+	void print(std::string filename) const;
 	std::string predict(const std::vector<int>& X) { return predict(root, X); };
 	double get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y);
 
@@ -41,6 +42,7 @@ private:
 
 	std::unique_ptr<RandomNode> create_new_node(const std::vector<int>& seen_features_in_branch) const;
 	constexpr void print_tree(const RandomNode* node, int level) const;
+	void print_tree(const RandomNode* node, int level, std::ofstream* output_file) const;
 
 	const TreeSeed* tree_seed_singleton;
 	const int seed = tree_seed_singleton->getInstance().get_seed();

@@ -1,6 +1,7 @@
 #include "RandomTree.hpp"
 #include <string>
 #include <queue>
+#include <fstream>
 
 RandomTree::RandomTree(double left_prob, double right_prob, int max_nodes, int max_depth) {
 	if (max_depth < 0) throw std::invalid_argument("max_depth out of range: " + std::to_string(max_depth) + " (must be >= 0)");
@@ -13,6 +14,12 @@ RandomTree::RandomTree(double left_prob, double right_prob, int max_nodes, int m
 
 void RandomTree::print() const {
 	print_tree(root.get(), 0);
+}
+
+void RandomTree::print(std::string filename) const {
+	std::ofstream* output_file = new std::ofstream(filename);
+	print_tree(root.get(), 0, output_file);
+	output_file->close();
 }
 
 double RandomTree::get_accuracy(const std::vector<std::vector<int>>& X, const std::vector<int>& y) {
@@ -241,6 +248,28 @@ constexpr void RandomTree::print_tree(const RandomNode* node, int level) const {
 		}
 
 		print_tree(node->right.get(), level + 1);
+	}
+}
+
+void RandomTree::print_tree(const RandomNode* node, int level, std::ofstream* output_file) const {
+	using namespace std;
+
+	if (node != nullptr) {
+		print_tree(node->left.get(), level + 1, output_file);
+
+		string spacing(8 * level, ' ');
+
+		if (node->has_target()) {
+			*output_file << spacing << "-> " << conversions->get_target_name(node->get_target()) << endl;
+		}
+		else {
+			string comparison = "(" + to_string(node->get_feature()) + " " +
+				conversions->get_string_comparator(node->get_comparator()) + " " + to_string(node->get_comparating_value()) + ")";
+
+			*output_file << spacing << "-> " << comparison << endl;
+		}
+
+		print_tree(node->right.get(), level + 1, output_file);
 	}
 }
 
