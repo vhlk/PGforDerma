@@ -135,9 +135,9 @@ int main() {
 
 	std::cout << "Best result acc: " << best_of_all.first << endl;
 	std::cout << "On test set: " << best_of_all.second->get_accuracy(X_test, y_test) << std::endl;
-	best_of_all.second->print(string(ROOT_DIR) + "Best_Tree.txt");
+	best_of_all.second->print(string(ROOT_DIR) + "/Best_Tree.txt");
 
-	ofstream best_tree_out_file(string(ROOT_DIR) + "Best_Tree.txt", ios_base::app);
+	ofstream best_tree_out_file(string(ROOT_DIR) + "/Best_Tree.txt", ios_base::app);
 	best_tree_out_file << "\n\n\nAcc: " << best_of_all.first << endl;
 	best_tree_out_file << "On test set: " << best_of_all.second->get_accuracy(X_test, y_test) << std::endl;
 	best_tree_out_file.close();
