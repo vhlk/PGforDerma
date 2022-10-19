@@ -8,15 +8,20 @@
 #include <random>
 #include <DataFrame/DataFrame.h>
 #include <fstream>
+#include <thread>
+#include <mutex>
 
 std::vector<std::vector<int>> load_dataset(std::string dataset_path_name);
 std::tuple<std::vector<std::vector<int>>, std::vector<int>, std::vector<std::vector<int>>, std::vector<int>> split_data(const std::vector<std::vector<int>>& data, double split_percentage);
 void sort_population(std::vector<std::pair<std::unique_ptr<RandomTree>,double>>& population);
 void insert_sorted(std::vector<std::pair<std::unique_ptr<RandomTree>,double>>& vec, std::unique_ptr<RandomTree> item, double item_acc);
 std::pair<double, std::unique_ptr<RandomTree>> run(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
-	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int> y, int num_children, int patience = 500);
-std::tuple<double, double, std::unique_ptr<RandomTree>> run_with_executions(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
-	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int> y, int num_children, int executions = 30, int patience = 500);
+	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int>& y, int num_children, int patience = 500);
+std::tuple<double, double, double, std::unique_ptr<RandomTree>> run_with_executions(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
+	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int>& y, int num_children, int executions = 30, int patience = 500);
+
+
+const int NUM_THREADS = 5; // executions must be divisible by this number
 
 int main() {
 	using namespace std;
@@ -24,8 +29,8 @@ int main() {
 	const int NUM_EXEC = 30;
 	const double TRAINING_PERCENTAGE = 0.70;
 
-	vector<int> population_sizes = { 20, 50, 100, 250 };
-	vector<double> left_right_prob = { 0.5, 0.6, 0.7 };
+	vector<int> population_sizes = { 20, 50, 100, 250, 500, 1000 };
+	vector<double> left_right_prob = { 0.5, 0.6, 0.7, 0.8 };
 	vector<int> max_nodes = { 30, 40, 50 };
 	vector<int> max_depth = { 5, 10, 15 };
 	vector<double> rec_prob = { 0.1, 0.2, 0.3 };
@@ -43,8 +48,8 @@ int main() {
 	double best_acc_pop = 0;
 	int best_pop = population_sizes[0];
 	for (auto pop_size : population_sizes) {
-		auto [acc, _, __] = run_with_executions(pop_size, left_right_prob[0], left_right_prob[0], max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
-		std::cout << "Acc for population of " << pop_size << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(pop_size, left_right_prob[0], left_right_prob[0], max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
+		std::cout << "Acc for population of " << pop_size << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_pop) {
 			best_pop = pop_size;
 			best_acc_pop = acc;
@@ -55,8 +60,8 @@ int main() {
 	double best_acc_lr_prob = 0;
 	double best_lr_prob = left_right_prob[0];
 	for (auto lr_prob : left_right_prob) {
-		auto [acc, _, __] = run_with_executions(best_pop, lr_prob, lr_prob, max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
-		std::cout << "Acc for left and right prob of " << lr_prob << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(best_pop, lr_prob, lr_prob, max_nodes[0], max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
+		std::cout << "Acc for left and right prob of " << lr_prob << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_lr_prob) {
 			best_lr_prob = lr_prob;
 			best_acc_lr_prob = acc;
@@ -67,8 +72,8 @@ int main() {
 	double best_acc_max_node = 0;
 	int best_max_node = max_nodes[0];
 	for (auto max_n : max_nodes) {
-		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, max_n, max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
-		std::cout << "Acc for max nodes of " << max_n << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, max_n, max_depth[0], rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
+		std::cout << "Acc for max nodes of " << max_n << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_max_node) {
 			best_max_node = max_n;
 			best_acc_max_node = acc;
@@ -79,8 +84,8 @@ int main() {
 	double best_acc_max_depth = 0;
 	int best_max_depth = max_depth[0];
 	for (auto m_depth : max_depth) {
-		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, m_depth, rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
-		std::cout << "Acc for max depth of " << m_depth << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, m_depth, rec_prob[0], mut_prob[0], X_train, y_train, children_creation[0]);
+		std::cout << "Acc for max depth of " << m_depth << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_max_depth) {
 			best_max_depth = m_depth;
 			best_acc_max_depth = acc;
@@ -91,8 +96,8 @@ int main() {
 	double best_acc_rec_prob = 0;
 	double best_rec_prob = rec_prob[0];
 	for (auto r_prob : rec_prob) {
-		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, r_prob, mut_prob[0], X_train, y_train, children_creation[0]);
-		std::cout << "Acc for rec prob of " << r_prob << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, r_prob, mut_prob[0], X_train, y_train, children_creation[0]);
+		std::cout << "Acc for rec prob of " << r_prob << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_rec_prob) {
 			best_rec_prob = r_prob;
 			best_acc_rec_prob = acc;
@@ -103,8 +108,8 @@ int main() {
 	double best_acc_mut_prob = 0;
 	double best_mut_prob = mut_prob[0];
 	for (auto m_prob : mut_prob) {
-		auto [acc, _, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, best_rec_prob, m_prob, X_train, y_train, children_creation[0]);
-		std::cout << "Acc for mut prob of " << m_prob << ": " << acc << std::endl;
+		auto [acc, _, stddev, __] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, best_rec_prob, m_prob, X_train, y_train, children_creation[0]);
+		std::cout << "Acc for mut prob of " << m_prob << ": " << acc << "(stddev: " << stddev << ")" << std::endl;
 		if (acc > best_acc_mut_prob) {
 			best_mut_prob = m_prob;
 			best_acc_mut_prob = acc;
@@ -112,53 +117,85 @@ int main() {
 	}
 	std::cout << "Best acc is with mut prob of: " << best_mut_prob << std::endl;
 
-	unique_ptr<RandomTree> best_tree = make_unique<RandomTree>(0, 0, 1, 1);
 	double best_acc_children = 0;
 	int best_num_children = children_creation[0];
-	double best_stddev = 0;
+	pair<double, unique_ptr<RandomTree>> best_of_all = make_pair(0, make_unique<RandomTree>(0, 0, 1, 1));
 	for (auto children : children_creation) {
-		auto [acc, stddev, tree] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, best_rec_prob, best_mut_prob, X_train, y_train, children);
-		std::cout << "Acc for number of children " << children << ": " << acc << std::endl;
-		if (acc > best_acc_children) {
+		auto [avg_acc, best_acc, stddev, tree] = run_with_executions(best_pop, best_lr_prob, best_lr_prob, best_max_node, best_max_depth, best_rec_prob, best_mut_prob, X_train, y_train, children);
+		std::cout << "Acc for number of children " << children << ": " << avg_acc << "(stddev: " << stddev << ")" << std::endl;
+		if (avg_acc > best_acc_children) {
 			best_num_children = children;
-			best_acc_children = acc;
-			best_tree = std::move(tree);
-			best_stddev = stddev;
+			best_acc_children = avg_acc;
+		}
+		if (best_acc > best_of_all.first) {
+			best_of_all = make_pair(best_acc, move(tree));
 		}
 	}
-	std::cout << "Best number of children creation is with: " << best_num_children << std::endl;
+	std::cout << "Best number of children creation is with: " << best_num_children << endl;
 
-	cout << "Best result acc: " << best_acc_children << " (stddev: " << best_stddev << ")" << endl;
-	best_tree->print(string(ROOT_DIR) + "Best_Tree.txt");
+	std::cout << "Best result acc: " << best_of_all.first << endl;
+	std::cout << "On test set: " << best_of_all.second->get_accuracy(X_test, y_test) << std::endl;
+	best_of_all.second->print(string(ROOT_DIR) + "Best_Tree.txt");
 
 	ofstream best_tree_out_file(string(ROOT_DIR) + "Best_Tree.txt", ios_base::app);
-	best_tree_out_file << "\n\n\nAcc: " << best_acc_children << " (stddev: " << best_stddev << ")" << endl;
+	best_tree_out_file << "\n\n\nAcc: " << best_of_all.first << endl;
+	best_tree_out_file << "On test set: " << best_of_all.second->get_accuracy(X_test, y_test) << std::endl;
 	best_tree_out_file.close();
 }
 
-std::tuple<double, double, std::unique_ptr<RandomTree>> run_with_executions(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
-	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int> y, int num_children, int executions, int patience) {
+std::mutex mtx;
+
+void thread_run(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth, double rec_prob, double mut_prob,
+	const std::vector<std::vector<int>>& X, const std::vector<int>& y, int num_children, int patience, std::vector<double>& accs, std::vector<std::unique_ptr<RandomTree>>& trees) {
+	auto [acc, tree] = run(population_size, left_prob, right_prob, max_nodes, max_depth, rec_prob, mut_prob, X, y, num_children, patience);
+	mtx.lock();
+	accs.push_back(acc);
+	trees.push_back(std::move(tree));
+	mtx.unlock();
+}
+
+std::tuple<double, double, double, std::unique_ptr<RandomTree>> run_with_executions(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
+	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int>& y, int num_children, int executions, int patience) {
 	using namespace std;
 
-	vector<double> accs = {};
+	vector<double> accs;
+	vector<unique_ptr<RandomTree>> trees;
+	vector<thread> threads;
+	
+	for (int i = 0; i < executions / NUM_THREADS; i++) {
+		for (int j = 0; j < NUM_THREADS; j++) {
+			thread t(thread_run, population_size, left_prob, right_prob, max_nodes, max_depth, rec_prob, mut_prob, ref(X), ref(y), num_children, patience, ref(accs), ref(trees));
+			threads.push_back(move(t));
+		}
+		for (int j = 0; j < NUM_THREADS; j++) {
+			auto& t = threads.back();
+			t.join();
+			threads.pop_back();
+		}
+
+		std::cout << '\r' << flush;
+		std::cout << (int) ((((i + 1.0) * NUM_THREADS) / executions) * 100) << "%" << std::flush;
+	}
+
 	double best_acc = 0;
 	auto best_tree = make_unique<RandomTree>(0, 0, 1, 1);
 	for (int i = 0; i < executions; i++) {
-		auto [acc, tree] = run(population_size, left_prob, right_prob, max_nodes, max_depth, rec_prob, mut_prob, X, y, num_children, patience);
+		auto acc = accs[i];
 		if (acc > best_acc) {
 			best_acc = acc;
-			best_tree = std::move(tree);
+			best_tree = std::move(trees[i]);
 		}
-		accs.push_back(acc);
 	}
+
+	std::cout << '\r' << flush;
 
 	double avg = Utils::get_average(accs);
 
-	return make_tuple(avg, Utils::get_stddev(accs, avg), std::move(best_tree));
+	return make_tuple(avg, best_acc, Utils::get_stddev(accs, avg), std::move(best_tree));
 }
 
 std::pair<double, std::unique_ptr<RandomTree>> run(int population_size, double left_prob, double right_prob, int max_nodes, int max_depth,
-	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int> y, int num_children, int patience) {
+	double rec_prob, double mut_prob, const std::vector<std::vector<int>>& X, const std::vector<int>& y, int num_children, int patience) {
 
 	using namespace std;
 
