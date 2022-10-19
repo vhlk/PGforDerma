@@ -8,7 +8,7 @@ include(ExternalProject)
 ExternalProject_Add(DataFrame
   URL https://github.com/hosseinmoein/DataFrame/archive/refs/tags/1.21.0.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/DataFrame
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_BUILD_TYPE=Release
   BUILD_BYPRODUCTS <INSTALL_DIR>/lib/DataFrame.lib
 )
 
